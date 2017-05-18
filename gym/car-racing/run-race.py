@@ -4,6 +4,7 @@ import neat
 import numpy as np
 
 env = gym.make('CarRacing-v0')
+env = gym.wrappers.Monitor(env, 'results', force=True)
 env.reset()
 
 print("action space: {0!r}".format(env.action_space))
@@ -42,7 +43,7 @@ def evaluate_nn(net, visualise=False):
 
 def evaluate_genome(genome, config):
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    genome.fitness = evaluate_nn(net, visualise=False)
+    genome.fitness = evaluate_nn(net, visualise=True)
 
 
 def evaluate_genomes(genomes, config):
@@ -59,7 +60,7 @@ def run(config_path):
         config_path
     )
 
-    pop = neat.Population(config)
+    pop = neat.Checkpointer.restore_checkpoint('neat-checkpoint-19')
 
     # setup some output statistics
     stats = neat.StatisticsReporter()
