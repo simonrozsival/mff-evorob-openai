@@ -4,6 +4,7 @@ import neat
 import numpy as np
 
 env = gym.make('CartPole-v0')
+env = gym.wrappers.Monitor(env, 'results', force=True)
 env.reset()
 
 print("action space: {0!r}".format(env.action_space))
@@ -13,17 +14,16 @@ print("observation space: {0!r}".format(env.observation_space))
 def evaluate_nn(net, visualise=False):
     fitness = 0
     observation = env.reset()
-    for t in range(1000):
+    for t in range(10000):
         if visualise:
             env.render()
 
         hot_output = net.activate(observation)
         action = np.argmax(hot_output)
         observation, reward, done, info = env.step(action)
+        fitness += reward
         if done:
             break
-        else:
-            fitness += 1
 
     return fitness
 
@@ -52,9 +52,9 @@ def run(config_path):
     # Checkpoint every 25 generations or 900 seconds.
     pop.add_reporter(neat.Checkpointer(25, 900))
 
-    winner = pop.run(evaluate_genomes, 150)
+    winner = pop.run(evaluate_genomes, 500)
     net = neat.nn.FeedForwardNetwork.create(winner, config)
-    for i in range(10):
+    while True:
         evaluate_nn(net, visualise=True)
 
 
