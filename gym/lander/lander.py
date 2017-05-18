@@ -4,6 +4,7 @@ import neat
 import numpy as np
 
 env = gym.make('LunarLander-v2')
+env = gym.wrappers.Monitor(env, 'results', force=True)
 env.reset()
 
 print("action space: {0!r}".format(env.action_space))
@@ -20,10 +21,9 @@ def evaluate_nn(net, visualise=False):
         hot_output = net.activate(observation)
         action = np.argmax(hot_output)
         observation, reward, done, info = env.step(action)
+        fitness += reward - abs(observation[0]) - abs(observation[1])
         if done:
             break
-        else:
-            fitness += reward
 
     return fitness
 
@@ -52,7 +52,7 @@ def run(config_path):
     # Checkpoint every 25 generations or 900 seconds.
     pop.add_reporter(neat.Checkpointer(25, 900))
 
-    winner = pop.run(evaluate_genomes, 500)
+    winner = pop.run(evaluate_genomes, 1000)
     net = neat.nn.FeedForwardNetwork.create(winner, config)
     while True:
         evaluate_nn(net, visualise=True)
